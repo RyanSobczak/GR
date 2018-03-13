@@ -10,14 +10,19 @@ public class BasicMovement : MonoBehaviour {
                  mMoveRight, mMoveLeft, mBrake;
 
     //the variables that are changed for the vehicles;
-    public float mAcceleration, mDecceleration, mHandling, mTopSpeed, mTopReverseSpeed;
+    public float mAcceleration, //how fast the scooter can accelerate 
+        mDecceleration, //how quickly you can brake, should be faster than accereration speed
+        mHandling, //how good the turning is, higher the number the better the turning 
+        mTopSpeed, //fasting forward speed  
+        mTopReverseSpeed; //fastest reverse speed, should be slower than fastest forward speed
 
     private float mSpeed;
 
     private bool gravity;
+    public LayerMask ground;
 
-	// Use this for initialization
-	void Start () {
+    // Use this for initialization
+    void Start () {
 
         mMoveForward = false;
         mMoveBack = false;
@@ -30,6 +35,7 @@ public class BasicMovement : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         CheckInput();
+        CheckGround();
         
     }
 
@@ -38,11 +44,32 @@ public class BasicMovement : MonoBehaviour {
         ModifyMovement();
     }
 
+    void CheckGround()
+    {
+        float groundBufferLimit = 0.7f;
+        bool hit = Physics.Raycast(transform.position, -Vector3.up, groundBufferLimit, ground);
+        Debug.DrawRay(transform.position, -Vector3.up * groundBufferLimit, Color.black);
+
+        if (hit)
+        {
+            print("hitting Ground");
+            GetComponent<Rigidbody>().freezeRotation = false;
+            GetComponent<Rigidbody>().AddForce(-20.0f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+        }
+        else
+        {
+            print("not hitting ground");
+            GetComponent<Rigidbody>().freezeRotation = true;
+            //transform.rotation = new Quaternion(transform.rotation.x, 0.0f, transform.rotation.z, transform.rotation.w);
+            GetComponent<Rigidbody>().AddForce(-250.0f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+        }
+    }
+
     void ModifyMovement()
     {
         //add gravity
         //if(gravity)
-        GetComponent<Rigidbody>().AddForce(-50f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+        //GetComponent<Rigidbody>().AddForce(-50f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         //GetComponent<Rigidbody>().AddForce(-9.81f * transform.up * GetComponent<Rigidbody>().mass);
 
         //actual physics based acceleration and decceleration
@@ -78,13 +105,13 @@ public class BasicMovement : MonoBehaviour {
         if (mMoveRight)
         {
             if (mSpeed != 0.0f)
-                transform.Rotate(transform.up * (mHandling / mSpeed));
+                transform.Rotate(transform.up * mHandling);
         }
 
         if (mMoveLeft)
         {
             if (mSpeed != 0.0f)
-                transform.Rotate(transform.up * (-mHandling / mSpeed));
+                transform.Rotate(transform.up * -mHandling);
         }
 
 
@@ -93,53 +120,58 @@ public class BasicMovement : MonoBehaviour {
         print(mSpeed);
 
         //last step is to add the velovity
-        GetComponent<Rigidbody>().velocity = transform.forward * mSpeed;
+        //if(mSpeed > 0)
+            GetComponent<Rigidbody>().velocity = transform.forward * mSpeed;
+        //else
+        //{
+            //GetComponent<Rigidbody>().velocity = transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity) * -mSpeed;
+        //}
     }
 
     //Temp code that wwill go into its own cs file 
     void CheckInput()
     {
-        if (Input.GetKeyDown(KeyCode.W))
+        if (Input.GetKey(KeyCode.W))
         {
             mMoveForward = true;
         }
-        else if (Input.GetKeyUp(KeyCode.W))
+        else 
         {
             mMoveForward = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKey(KeyCode.S))
         {
             mMoveBack = true;
         }
-        else if (Input.GetKeyUp(KeyCode.S))
+        else 
         {
             mMoveBack = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKey(KeyCode.A))
         {
             mMoveLeft = true;
         }
-        else if (Input.GetKeyUp(KeyCode.A))
+        else 
         {
             mMoveLeft = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKey(KeyCode.D))
         {
             mMoveRight = true;
         }
-        else if (Input.GetKeyUp(KeyCode.D))
+        else
         {
             mMoveRight = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space))
         {
             mBrake = true;
         }
-        else if (Input.GetKeyUp(KeyCode.Space))
+        else 
         {
             mBrake = false;
         }
