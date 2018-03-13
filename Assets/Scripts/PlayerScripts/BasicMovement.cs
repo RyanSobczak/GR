@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BasicMovement : MonoBehaviour {
 
@@ -12,6 +13,8 @@ public class BasicMovement : MonoBehaviour {
     public float mAcceleration, mDecceleration, mHandling, mTopSpeed, mTopReverseSpeed;
 
     private float mSpeed;
+
+    private bool gravity;
 
 	// Use this for initialization
 	void Start () {
@@ -37,8 +40,13 @@ public class BasicMovement : MonoBehaviour {
 
     void ModifyMovement()
     {
+        //add gravity
+        //if(gravity)
+        GetComponent<Rigidbody>().AddForce(-50f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+        //GetComponent<Rigidbody>().AddForce(-9.81f * transform.up * GetComponent<Rigidbody>().mass);
+
         //actual physics based acceleration and decceleration
-        if(mMoveForward)
+        if (mMoveForward)
         {
             if (mSpeed >= mTopSpeed)
                 mSpeed = mTopSpeed;
@@ -47,15 +55,16 @@ public class BasicMovement : MonoBehaviour {
         }
 
         //reverse, broken at the moment
-        //if (mMoveBack)
-        //{
-        //    if (mSpeed >= mTopReverseSpeed)
-        //        mSpeed = mTopReverseSpeed;
-        //    else
-        //        mSpeed = mSpeed + mAcceleration * Time.deltaTime;
+        if (mMoveBack)
+        {
+            if (mSpeed <= mTopReverseSpeed)
+                mSpeed = mTopReverseSpeed;
+            else
+                mSpeed = mSpeed - mAcceleration * Time.deltaTime;
 
-        //    //GetComponent<Rigidbody>().velocity = transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity) * mSpeed;
-        //}
+            //transform.Translate(transform.InverseTransformDirection(transform.forward) * mSpeed * Time.deltaTime);
+            //GetComponent<Rigidbody>().velocity = transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity) * mSpeed;
+        }
 
         if (mBrake)
         {
@@ -66,10 +75,10 @@ public class BasicMovement : MonoBehaviour {
         }
 
         //Turning, turning about is dependant on speed, like actual cars and scooters, i guess
-        if(mMoveRight)
+        if (mMoveRight)
         {
-            if(mSpeed != 0.0f)
-            transform.Rotate(transform.up * (mHandling / mSpeed));
+            if (mSpeed != 0.0f)
+                transform.Rotate(transform.up * (mHandling / mSpeed));
         }
 
         if (mMoveLeft)
@@ -79,7 +88,7 @@ public class BasicMovement : MonoBehaviour {
         }
 
 
-        
+
 
         print(mSpeed);
 
@@ -133,6 +142,11 @@ public class BasicMovement : MonoBehaviour {
         else if (Input.GetKeyUp(KeyCode.Space))
         {
             mBrake = false;
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(0);
         }
     }
 }
