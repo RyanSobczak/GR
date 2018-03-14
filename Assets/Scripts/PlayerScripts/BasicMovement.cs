@@ -11,14 +11,15 @@ public class BasicMovement : MonoBehaviour {
 
     //the variables that are changed for the vehicles;
     public float mAcceleration, //how fast the scooter can accelerate 
-        mDecceleration, //how quickly you can brake, should be faster than accereration speed
+        mDeceleration, //how fast you slow down if the gas is not pushed down
+        mBraking, //how quickly you can brake, should be faster than accereration speed
         mHandling, //how good the turning is, higher the number the better the turning 
         mTopSpeed, //fasting forward speed  
-        mTopReverseSpeed; //fastest reverse speed, should be slower than fastest forward speed
+        mTopReverseSpeed, //fastest reverse speed, should be slower than fastest forward speed
+        mFallingGravity; //how hard you fall
 
     private float mSpeed;
-
-    private bool gravity;
+    private const float mc_OnGroundGravity = -20.0f;
     public LayerMask ground;
 
     // Use this for initialization
@@ -52,26 +53,18 @@ public class BasicMovement : MonoBehaviour {
 
         if (hit)
         {
-            print("hitting Ground");
             GetComponent<Rigidbody>().freezeRotation = false;
-            GetComponent<Rigidbody>().AddForce(-20.0f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+            GetComponent<Rigidbody>().AddForce(mc_OnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
         else
         {
-            print("not hitting ground");
             GetComponent<Rigidbody>().freezeRotation = true;
-            //transform.rotation = new Quaternion(transform.rotation.x, 0.0f, transform.rotation.z, transform.rotation.w);
-            GetComponent<Rigidbody>().AddForce(-250.0f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+            GetComponent<Rigidbody>().AddForce(mFallingGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
     }
 
     void ModifyMovement()
     {
-        //add gravity
-        //if(gravity)
-        //GetComponent<Rigidbody>().AddForce(-50f * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
-        //GetComponent<Rigidbody>().AddForce(-9.81f * transform.up * GetComponent<Rigidbody>().mass);
-
         //actual physics based acceleration and decceleration
         if (mMoveForward)
         {
@@ -93,12 +86,23 @@ public class BasicMovement : MonoBehaviour {
             //GetComponent<Rigidbody>().velocity = transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity) * mSpeed;
         }
 
+        //Decel speed if gas not pressed 
+        if(mSpeed > 0 && !mMoveForward)
+        {
+            mSpeed = mSpeed - mDeceleration * Time.deltaTime;
+        }
+        else if (mSpeed < 0 && !mMoveBack)
+        {
+            mSpeed = mSpeed + mDeceleration * Time.deltaTime;
+        }
+
+        //braking
         if (mBrake)
         {
             if (mSpeed <= 0)
                 mSpeed = 0;
             else
-                mSpeed = mSpeed + mDecceleration * Time.deltaTime;
+                mSpeed = mSpeed + mBraking * Time.deltaTime;
         }
 
         //Turning, turning about is dependant on speed, like actual cars and scooters, i guess

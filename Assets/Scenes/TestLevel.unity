@@ -409,10 +409,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mAcceleration: 5
-  mDecceleration: -8
+  mDeceleration: 3
+  mBraking: -8
   mHandling: 3
   mTopSpeed: 10
   mTopReverseSpeed: -5
+  mFallingGravity: -300
   ground:
     serializedVersion: 2
     m_Bits: 256
