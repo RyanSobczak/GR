@@ -7,7 +7,8 @@ public class BasicMovement : MonoBehaviour {
 
     //basic input variables
     private bool mMoveForward, mMoveBack,
-                 mMoveRight, mMoveLeft, mBrake;
+                 mMoveRight, mMoveLeft, mBrake,
+                 mCantMoveForward;
 
     //the variables that are changed for the vehicles;
     public float mAcceleration, //how fast the scooter can accelerate 
@@ -16,10 +17,13 @@ public class BasicMovement : MonoBehaviour {
         mHandling, //how good the turning is, higher the number the better the turning 
         mTopSpeed, //fasting forward speed  
         mTopReverseSpeed, //fastest reverse speed, should be slower than fastest forward speed
-        mFallingGravity; //how hard you fall
+        mFallingGravity, //how hard you fall
+        mGroundBufferLimit, //ray cast to find ground under player 
+        mForwardGroundBufferLimit; //ray cast to find a wall infront of the player
 
     private float mSpeed;
-    private const float mc_OnGroundGravity = -20.0f;
+    private const float mc_OnGroundGravity = -30.0f;//-20.0f
+    private const float mc_SomewhatOnGroundGravity = -70.0f;//-20.0f
     public LayerMask ground;
 
     // Use this for initialization
@@ -29,6 +33,7 @@ public class BasicMovement : MonoBehaviour {
         mMoveBack = false;
         mMoveRight = false;
         mMoveLeft = false;
+        mCantMoveForward = false;
 
         mSpeed = 0.0f;
     }
@@ -47,26 +52,54 @@ public class BasicMovement : MonoBehaviour {
 
     void CheckGround()
     {
-        float groundBufferLimit = 0.7f;
-        bool hit = Physics.Raycast(transform.position, -Vector3.up, groundBufferLimit, ground);
-        Debug.DrawRay(transform.position, -Vector3.up * groundBufferLimit, Color.black);
+        Vector3 firstPos = transform.position + transform.forward * 0.7f;
+        bool hit = Physics.Raycast(firstPos, -Vector3.up, mGroundBufferLimit, ground);
+        Debug.DrawRay(firstPos, -Vector3.up * mGroundBufferLimit, Color.black);
 
-        if (hit)
+        Vector3 secondPos = transform.position + transform.forward * -1.7f;
+        bool hit1 = Physics.Raycast(secondPos, -Vector3.up, mGroundBufferLimit, ground);
+        Debug.DrawRay(secondPos, -Vector3.up * mGroundBufferLimit, Color.black);
+
+        if (hit || hit1)
         {
             GetComponent<Rigidbody>().freezeRotation = false;
             GetComponent<Rigidbody>().AddForce(mc_OnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
+        //else if((hit && !hit1) || (!hit && hit1))
+        //{
+        //    print("somewhat not hit ground");
+        //    GetComponent<Rigidbody>().freezeRotation = false;
+        //    GetComponent<Rigidbody>().AddForce(mc_SomewhatOnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+        //}
         else
         {
             GetComponent<Rigidbody>().freezeRotation = true;
             GetComponent<Rigidbody>().AddForce(mFallingGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+        }
+
+        bool hitforward = Physics.Raycast(transform.position, transform.forward, mForwardGroundBufferLimit, ground);
+        Debug.DrawRay(transform.position, transform.forward * mForwardGroundBufferLimit, Color.black);
+
+        if (hitforward)
+        {
+            if (!mCantMoveForward)
+            {
+                mCantMoveForward = true;
+                GetComponent<Rigidbody>().velocity = Vector3.zero;
+                mSpeed = 0.0f;
+            }
+            
+        }
+        else
+        {
+            mCantMoveForward = false;
         }
     }
 
     void ModifyMovement()
     {
         //actual physics based acceleration and decceleration
-        if (mMoveForward)
+        if (mMoveForward && !mCantMoveForward)
         {
             if (mSpeed >= mTopSpeed)
                 mSpeed = mTopSpeed;
@@ -121,7 +154,7 @@ public class BasicMovement : MonoBehaviour {
 
 
 
-        print(mSpeed);
+        //print(mSpeed);
 
         //last step is to add the velovity
         //if(mSpeed > 0)
