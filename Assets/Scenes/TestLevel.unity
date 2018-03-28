@@ -414,7 +414,8 @@ MonoBehaviour:
   mHandling: 3
   mTopSpeed: 10
   mTopReverseSpeed: -5
-  mFallingGravity: -200
+  mFallingGravity: -250
+  m_OnGroundGravity: -24
   mGroundBufferLimit: 0.7
   mForwardGroundBufferLimit: 0.7
   ground:
@@ -1372,7 +1373,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 754693297}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.059999973, z: -1.7389995}
+  m_LocalPosition: {x: 0, y: -0.059999973, z: -1.63}
   m_LocalScale: {x: 0.4096306, y: 0.75, z: 0.20986292}
   m_Children: []
   m_Father: {fileID: 105556187}

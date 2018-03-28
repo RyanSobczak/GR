@@ -18,12 +18,11 @@ public class BasicMovement : MonoBehaviour {
         mTopSpeed, //fasting forward speed  
         mTopReverseSpeed, //fastest reverse speed, should be slower than fastest forward speed
         mFallingGravity, //how hard you fall
+        m_OnGroundGravity, //gravity on the ground 
         mGroundBufferLimit, //ray cast to find ground under player 
         mForwardGroundBufferLimit; //ray cast to find a wall infront of the player
 
     private float mSpeed;
-    private const float mc_OnGroundGravity = -24.0f;//-24//-30.0f
-    private const float mc_SomewhatOnGroundGravity = -70.0f;//-20.0f
     public LayerMask ground;
 
     // Use this for initialization
@@ -54,31 +53,25 @@ public class BasicMovement : MonoBehaviour {
     void CheckGround()
     {
         Vector3 firstPos = transform.position + transform.forward * 0.5f;
-        bool hit = Physics.Raycast(firstPos, -Vector3.up, mGroundBufferLimit, ground);
-        Debug.DrawRay(firstPos, -Vector3.up * mGroundBufferLimit, Color.black);
+        bool hit = Physics.Raycast(firstPos, -transform.up, mGroundBufferLimit, ground);
+        Debug.DrawRay(firstPos, -transform.up * mGroundBufferLimit, Color.black);
 
         Vector3 secondPos = transform.position + transform.forward * -1.7f;
-        bool hit1 = Physics.Raycast(secondPos, -Vector3.up, mGroundBufferLimit, ground);
-        Debug.DrawRay(secondPos, -Vector3.up * mGroundBufferLimit, Color.black);
+        bool hit1 = Physics.Raycast(secondPos, -transform.up, mGroundBufferLimit, ground);
+        Debug.DrawRay(secondPos, -transform.up * mGroundBufferLimit, Color.black);
 
         if (hit || hit1)
         {
             mAirborne = false;
             GetComponent<Rigidbody>().freezeRotation = false;
-            GetComponent<Rigidbody>().AddForce(mc_OnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+            GetComponent<Rigidbody>().AddForce(m_OnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
-        //else if((hit && !hit1) || (!hit && hit1))
-        //{
-        //    print("somewhat not hit ground");
-        //    GetComponent<Rigidbody>().freezeRotation = false;
-        //    GetComponent<Rigidbody>().AddForce(mc_SomewhatOnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
-        //}
         else
         {
             mAirborne = true;
-            transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 0.0f, transform.rotation.w);
+            transform.rotation = new Quaternion(0.0f, transform.rotation.y, transform.rotation.z, transform.rotation.w);
             GetComponent<Rigidbody>().freezeRotation = true;
-            GetComponent<Rigidbody>().AddForce(mFallingGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
+            GetComponent<Rigidbody>().AddForce(mFallingGravity * Vector3.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
 
         bool hitforward = Physics.Raycast(transform.position, transform.forward, mForwardGroundBufferLimit, ground);
@@ -118,9 +111,6 @@ public class BasicMovement : MonoBehaviour {
                 mSpeed = mTopReverseSpeed;
             else
                 mSpeed = mSpeed - mAcceleration * Time.deltaTime;
-
-            //transform.Translate(transform.InverseTransformDirection(transform.forward) * mSpeed * Time.deltaTime);
-            //GetComponent<Rigidbody>().velocity = transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity) * mSpeed;
         }
 
         //Decel speed if gas not pressed 
@@ -155,18 +145,8 @@ public class BasicMovement : MonoBehaviour {
                 transform.Rotate(transform.up * -mHandling);
         }
 
-
-
-
-        //print(mSpeed);
-
         //last step is to add the velovity
-        //if(mSpeed > 0)
-            GetComponent<Rigidbody>().velocity = transform.forward * mSpeed;
-        //else
-        //{
-            //GetComponent<Rigidbody>().velocity = transform.InverseTransformDirection(GetComponent<Rigidbody>().velocity) * -mSpeed;
-        //}
+        GetComponent<Rigidbody>().velocity = transform.forward * mSpeed;
     }
 
     //Temp code that wwill go into its own cs file 
