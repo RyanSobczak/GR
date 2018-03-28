@@ -8,7 +8,7 @@ public class BasicMovement : MonoBehaviour {
     //basic input variables
     private bool mMoveForward, mMoveBack,
                  mMoveRight, mMoveLeft, mBrake,
-                 mCantMoveForward;
+                 mCantMoveForward, mAirborne;
 
     //the variables that are changed for the vehicles;
     public float mAcceleration, //how fast the scooter can accelerate 
@@ -22,7 +22,7 @@ public class BasicMovement : MonoBehaviour {
         mForwardGroundBufferLimit; //ray cast to find a wall infront of the player
 
     private float mSpeed;
-    private const float mc_OnGroundGravity = -30.0f;//-20.0f
+    private const float mc_OnGroundGravity = -24.0f;//-24//-30.0f
     private const float mc_SomewhatOnGroundGravity = -70.0f;//-20.0f
     public LayerMask ground;
 
@@ -34,6 +34,7 @@ public class BasicMovement : MonoBehaviour {
         mMoveRight = false;
         mMoveLeft = false;
         mCantMoveForward = false;
+        mAirborne = false;
 
         mSpeed = 0.0f;
     }
@@ -52,7 +53,7 @@ public class BasicMovement : MonoBehaviour {
 
     void CheckGround()
     {
-        Vector3 firstPos = transform.position + transform.forward * 0.7f;
+        Vector3 firstPos = transform.position + transform.forward * 0.5f;
         bool hit = Physics.Raycast(firstPos, -Vector3.up, mGroundBufferLimit, ground);
         Debug.DrawRay(firstPos, -Vector3.up * mGroundBufferLimit, Color.black);
 
@@ -62,6 +63,7 @@ public class BasicMovement : MonoBehaviour {
 
         if (hit || hit1)
         {
+            mAirborne = false;
             GetComponent<Rigidbody>().freezeRotation = false;
             GetComponent<Rigidbody>().AddForce(mc_OnGroundGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
@@ -73,6 +75,8 @@ public class BasicMovement : MonoBehaviour {
         //}
         else
         {
+            mAirborne = true;
+            transform.rotation = new Quaternion(transform.rotation.x, transform.rotation.y, 0.0f, transform.rotation.w);
             GetComponent<Rigidbody>().freezeRotation = true;
             GetComponent<Rigidbody>().AddForce(mFallingGravity * transform.up * GetComponent<Rigidbody>().mass, ForceMode.Force);
         }
@@ -99,7 +103,7 @@ public class BasicMovement : MonoBehaviour {
     void ModifyMovement()
     {
         //actual physics based acceleration and decceleration
-        if (mMoveForward && !mCantMoveForward)
+        if (mMoveForward && !mCantMoveForward && !mAirborne)
         {
             if (mSpeed >= mTopSpeed)
                 mSpeed = mTopSpeed;
@@ -108,7 +112,7 @@ public class BasicMovement : MonoBehaviour {
         }
 
         //reverse, broken at the moment
-        if (mMoveBack)
+        if (mMoveBack && !mAirborne)
         {
             if (mSpeed <= mTopReverseSpeed)
                 mSpeed = mTopReverseSpeed;
@@ -139,13 +143,13 @@ public class BasicMovement : MonoBehaviour {
         }
 
         //Turning, turning about is dependant on speed, like actual cars and scooters, i guess
-        if (mMoveRight)
+        if (mMoveRight && !mAirborne)
         {
             if (mSpeed != 0.0f)
                 transform.Rotate(transform.up * mHandling);
         }
 
-        if (mMoveLeft)
+        if (mMoveLeft && !mAirborne)
         {
             if (mSpeed != 0.0f)
                 transform.Rotate(transform.up * -mHandling);
