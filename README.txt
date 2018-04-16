@@ -1,1 +1,3 @@
 granny racing game
+
+controls
